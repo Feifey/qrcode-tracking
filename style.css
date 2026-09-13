@@ -7,9 +7,16 @@ html, body {
   overflow: hidden;
 }
 
-#webcam {
+#webcam, #overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100vw;
   height: 100vh;
   object-fit: cover;
   display: block;
+}
+
+#overlay {
+  pointer-events: none;
 }
