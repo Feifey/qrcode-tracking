@@ -42,6 +42,7 @@ function tick() {
     overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
     if (qrCode) {
       drawBox(qrCode.location);
+      drawLabel(qrCode.location, qrCode.data);
     }
   }
 
@@ -60,4 +61,23 @@ function drawBox(location) {
   overlayCtx.lineTo(bottomLeftCorner.x, bottomLeftCorner.y);
   overlayCtx.closePath();
   overlayCtx.stroke();
+}
+
+function drawLabel(location, text) {
+  const { bottomLeftCorner, bottomRightCorner } = location;
+
+  const fontSize = Math.max(16, overlay.width * 0.02);
+  const padding = fontSize * 0.25;
+  const x = Math.min(bottomLeftCorner.x, bottomRightCorner.x);
+  const y = Math.max(bottomLeftCorner.y, bottomRightCorner.y) + padding;
+
+  overlayCtx.font = `${fontSize}px monospace`;
+  overlayCtx.textBaseline = 'top';
+  const textWidth = overlayCtx.measureText(text).width;
+
+  overlayCtx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+  overlayCtx.fillRect(x - padding, y - padding, textWidth + padding * 2, fontSize + padding * 2);
+
+  overlayCtx.fillStyle = '#00ff00';
+  overlayCtx.fillText(text, x, y);
 }
