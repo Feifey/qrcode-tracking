@@ -5,7 +5,15 @@ const overlayCtx = overlay.getContext('2d');
 let sampleCanvas;
 let sampleCtx;
 
-navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+const VIDEO_CONSTRAINTS = {
+  video: {
+    width: { ideal: 1920 },
+    height: { ideal: 1080 },
+  },
+  audio: false,
+};
+
+navigator.mediaDevices.getUserMedia(VIDEO_CONSTRAINTS)
   .then((stream) => {
     video.srcObject = stream;
   })
