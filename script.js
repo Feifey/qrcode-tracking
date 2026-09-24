@@ -12,15 +12,26 @@ let tickStarted = false;
 
 // Maps each QR code's decoded text to the object it represents. Add or edit
 // entries here to change what a code displays as, without touching the
-// scanning/rendering logic below.
+// scanning/rendering logic below. imageSrc is optional; without one, the
+// code falls back to a text label in `color`.
 const OBJECTS = {
-  'phone': { name: 'Phone', color: '#00c8ff' },
-  'bottle': { name: 'Bottle', color: '#ffcc00' },
-  'notebook': { name: 'Notebook', color: '#ff6699' },
-  'object-a': { name: 'Object A', color: '#66ff66' },
-  'object-b': { name: 'Object B', color: '#ff6666' },
-  'object-c': { name: 'Object C', color: '#a366ff' },
+  'phone': { name: 'Phone', color: '#00c8ff', imageSrc: 'images/phone.webp' },
+  'bottle': { name: 'Bottle', color: '#ffcc00', imageSrc: 'images/bottle.webp' },
+  'notebook': { name: 'Notebook', color: '#ff6699', imageSrc: 'images/notebook.jpg' },
+  'object-a': { name: 'Object A', color: '#66ff66', imageSrc: 'images/object-a.jpg' },
+  'object-b': { name: 'Object B', color: '#ff6666', imageSrc: 'images/object-b.webp' },
+  'object-c': { name: 'Object C', color: '#a366ff', imageSrc: 'images/object-c.gif' },
 };
+
+// Preload each object's image once at startup so `image.complete` is ready
+// by the time a code is first detected, rather than loading on first scan.
+for (const object of Object.values(OBJECTS)) {
+  if (object.imageSrc) {
+    const image = new Image();
+    image.src = object.imageSrc;
+    object.image = image;
+  }
+}
 
 // Falls back to the raw decoded text (in the default green) for any QR code
 // that isn't in OBJECTS yet.
@@ -96,7 +107,11 @@ function tick() {
     for (const qrCode of scanForQRCodes()) {
       const object = getObject(qrCode.data);
       drawBox(qrCode.location, object.color);
-      drawLabel(qrCode.location, object.name, object.color);
+      if (object.image && object.image.complete && object.image.naturalWidth > 0) {
+        drawObjectImage(qrCode.location, object.image);
+      } else {
+        drawLabel(qrCode.location, object.name, object.color);
+      }
     }
   }
 
@@ -185,6 +200,24 @@ function centerOf(location) {
     x: (topLeftCorner.x + bottomRightCorner.x) / 2,
     y: (topLeftCorner.y + bottomRightCorner.y) / 2,
   };
+}
+
+// How much bigger than the QR code itself the overlaid image is drawn.
+// 1.0 would match the code's footprint exactly; a bit above that keeps the
+// image legible without covering much extra screen space.
+const OBJECT_IMAGE_SCALE = 1.2;
+
+// Draws `image` centered on the QR code, scaled relative to the code's own
+// size in the frame so it stays proportional as the code moves closer/further.
+function drawObjectImage(location, image) {
+  const { topLeftCorner, topRightCorner } = location;
+  const center = centerOf(location);
+  const qrWidth = Math.hypot(topRightCorner.x - topLeftCorner.x, topRightCorner.y - topLeftCorner.y);
+
+  const drawWidth = qrWidth * OBJECT_IMAGE_SCALE;
+  const drawHeight = drawWidth * (image.naturalHeight / image.naturalWidth);
+
+  overlayCtx.drawImage(image, center.x - drawWidth / 2, center.y - drawHeight / 2, drawWidth, drawHeight);
 }
 
 function drawBox(location, color = '#00ff00') {
