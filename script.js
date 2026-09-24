@@ -9,6 +9,7 @@ const VIDEO_CONSTRAINTS = {
   video: {
     width: { ideal: 1920 },
     height: { ideal: 1080 },
+    facingMode: { ideal: 'environment' },
   },
   audio: false,
 };
