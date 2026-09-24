@@ -14,6 +14,24 @@ const VIDEO_CONSTRAINTS = {
   audio: false,
 };
 
+// Maps each QR code's decoded text to the object it represents. Add or edit
+// entries here to change what a code displays as, without touching the
+// scanning/rendering logic below.
+const OBJECTS = {
+  'phone': { name: 'Phone', color: '#00c8ff' },
+  'bottle': { name: 'Bottle', color: '#ffcc00' },
+  'notebook': { name: 'Notebook', color: '#ff6699' },
+  'object-a': { name: 'Object A', color: '#66ff66' },
+  'object-b': { name: 'Object B', color: '#ff6666' },
+  'object-c': { name: 'Object C', color: '#a366ff' },
+};
+
+// Falls back to the raw decoded text (in the default green) for any QR code
+// that isn't in OBJECTS yet.
+function getObject(data) {
+  return OBJECTS[data] || { name: data, color: '#00ff00' };
+}
+
 // Approximate size of a QR code in the captured frame, in pixels.
 const QR_SIZE = 150;
 // jsQR only ever returns one decoded symbol per call, so to find multiple
@@ -51,8 +69,9 @@ function tick() {
 
     overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
     for (const qrCode of scanForQRCodes()) {
-      drawBox(qrCode.location);
-      drawLabel(qrCode.location, qrCode.data);
+      const object = getObject(qrCode.data);
+      drawBox(qrCode.location, object.color);
+      drawLabel(qrCode.location, object.name, object.color);
     }
   }
 
@@ -143,10 +162,10 @@ function centerOf(location) {
   };
 }
 
-function drawBox(location) {
+function drawBox(location, color = '#00ff00') {
   const { topLeftCorner, topRightCorner, bottomRightCorner, bottomLeftCorner } = location;
 
-  overlayCtx.strokeStyle = '#00ff00';
+  overlayCtx.strokeStyle = color;
   overlayCtx.lineWidth = Math.max(4, overlay.width * 0.006);
   overlayCtx.beginPath();
   overlayCtx.moveTo(topLeftCorner.x, topLeftCorner.y);
@@ -157,7 +176,7 @@ function drawBox(location) {
   overlayCtx.stroke();
 }
 
-function drawLabel(location, text) {
+function drawLabel(location, text, color = '#00ff00') {
   const { bottomLeftCorner, bottomRightCorner } = location;
 
   const fontSize = Math.max(16, overlay.width * 0.02);
@@ -172,6 +191,6 @@ function drawLabel(location, text) {
   overlayCtx.fillStyle = 'rgba(0, 0, 0, 0.6)';
   overlayCtx.fillRect(x - padding, y - padding, textWidth + padding * 2, fontSize + padding * 2);
 
-  overlayCtx.fillStyle = '#00ff00';
+  overlayCtx.fillStyle = color;
   overlayCtx.fillText(text, x, y);
 }
