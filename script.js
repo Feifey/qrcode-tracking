@@ -2,17 +2,13 @@ const video = document.getElementById('webcam');
 const overlay = document.getElementById('overlay');
 const overlayCtx = overlay.getContext('2d');
 
+const cameraToggleButton = document.getElementById('cameraToggle');
+
 let sampleCanvas;
 let sampleCtx;
-
-const VIDEO_CONSTRAINTS = {
-  video: {
-    width: { ideal: 1920 },
-    height: { ideal: 1080 },
-    facingMode: { ideal: 'environment' },
-  },
-  audio: false,
-};
+let currentStream;
+let currentFacingMode = 'environment';
+let tickStarted = false;
 
 // Maps each QR code's decoded text to the object it represents. Add or edit
 // entries here to change what a code displays as, without touching the
@@ -43,13 +39,29 @@ const QR_SIZE = 150;
 const TILE_SIZE = QR_SIZE * 2;
 const TILE_STEP = QR_SIZE;
 
-navigator.mediaDevices.getUserMedia(VIDEO_CONSTRAINTS)
-  .then((stream) => {
-    video.srcObject = stream;
-  })
-  .catch((error) => {
-    console.error('Unable to access webcam:', error);
-  });
+function startCamera(facingMode) {
+  if (currentStream) {
+    currentStream.getTracks().forEach((track) => track.stop());
+  }
+
+  const constraints = {
+    video: {
+      width: { ideal: 1920 },
+      height: { ideal: 1080 },
+      facingMode: { ideal: facingMode },
+    },
+    audio: false,
+  };
+
+  return navigator.mediaDevices.getUserMedia(constraints)
+    .then((stream) => {
+      currentStream = stream;
+      video.srcObject = stream;
+    })
+    .catch((error) => {
+      console.error('Unable to access webcam:', error);
+    });
+}
 
 video.addEventListener('loadedmetadata', () => {
   overlay.width = video.videoWidth;
@@ -60,8 +72,21 @@ video.addEventListener('loadedmetadata', () => {
   sampleCanvas.height = video.videoHeight;
   sampleCtx = sampleCanvas.getContext('2d', { willReadFrequently: true });
 
-  requestAnimationFrame(tick);
+  if (!tickStarted) {
+    tickStarted = true;
+    requestAnimationFrame(tick);
+  }
 });
+
+cameraToggleButton.addEventListener('click', () => {
+  currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+  cameraToggleButton.textContent = currentFacingMode === 'environment'
+    ? 'Switch to Front Camera'
+    : 'Switch to Back Camera';
+  startCamera(currentFacingMode);
+});
+
+startCamera(currentFacingMode);
 
 function tick() {
   if (video.readyState === video.HAVE_ENOUGH_DATA) {
