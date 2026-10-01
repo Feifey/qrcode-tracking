@@ -21,6 +21,9 @@ const OBJECTS = {
   'object-a': { name: 'Object A', color: '#66ff66', imageSrc: 'images/object-a.jpg' },
   'object-b': { name: 'Object B', color: '#ff6666', imageSrc: 'images/object-b.webp' },
   'object-c': { name: 'Object C', color: '#a366ff', imageSrc: 'images/object-c.gif' },
+  'bottle-empty': { name: 'Empty Bottle', color: '#ff3333' },
+  'bottle-half': { name: 'Half Full Bottle', color: '#ffaa00' },
+  'bottle-full': { name: 'Full Bottle', color: '#33ff99' },
 };
 
 // Preload each object's image once at startup so `image.complete` is ready
