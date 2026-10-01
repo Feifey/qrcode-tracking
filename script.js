@@ -21,9 +21,9 @@ const OBJECTS = {
   'object-a': { name: 'Object A', color: '#66ff66', imageSrc: 'images/object-a.jpg' },
   'object-b': { name: 'Object B', color: '#ff6666', imageSrc: 'images/object-b.webp' },
   'object-c': { name: 'Object C', color: '#a366ff', imageSrc: 'images/object-c.gif' },
-  'bottle-empty': { name: 'Empty Bottle', color: '#ff3333' },
-  'bottle-half': { name: 'Half Full Bottle', color: '#ffaa00' },
-  'bottle-full': { name: 'Full Bottle', color: '#33ff99' },
+  'bottle-empty': { name: 'Bottle 1', color: '#ff3333' },
+  'bottle-half': { name: 'Bottle 2', color: '#ffaa00' },
+  'bottle-full': { name: 'Bottle 3', color: '#33ff99' },
 };
 
 // Preload each object's image once at startup so `image.complete` is ready
@@ -40,6 +40,87 @@ for (const object of Object.values(OBJECTS)) {
 // that isn't in OBJECTS yet.
 function getObject(data) {
   return OBJECTS[data] || { name: data, color: '#00ff00' };
+}
+
+// Hand tracking (MediaPipe HandLandmarker) powers the "point at an object to
+// hear its name" feature. It loads its WASM runtime and model from a CDN
+// asynchronously, so `handLandmarker` stays null until that finishes — tick()
+// just skips pointing detection until then.
+let handLandmarker = null;
+let pointedObjectData = null;
+
+async function initHandLandmarker() {
+  const { HandLandmarker, FilesetResolver } = await import(
+    'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14'
+  );
+  const filesetResolver = await FilesetResolver.forVisionTasks(
+    'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'
+  );
+
+  handLandmarker = await HandLandmarker.createFromOptions(filesetResolver, {
+    baseOptions: {
+      modelAssetPath:
+        'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
+      delegate: 'GPU',
+    },
+    runningMode: 'VIDEO',
+    numHands: 1,
+  });
+}
+
+initHandLandmarker().catch((error) => {
+  console.error('Unable to load hand tracking:', error);
+});
+
+// Landmark 8 is the index fingertip in MediaPipe's 21-point hand model.
+// Coordinates come back normalized (0-1) relative to the video frame.
+function getIndexFingertip() {
+  if (!handLandmarker || video.readyState !== video.HAVE_ENOUGH_DATA) {
+    return null;
+  }
+
+  const result = handLandmarker.detectForVideo(video, performance.now());
+  const landmarks = result.landmarks[0];
+  if (!landmarks) {
+    return null;
+  }
+
+  const tip = landmarks[8];
+  return { x: tip.x * sampleCanvas.width, y: tip.y * sampleCanvas.height };
+}
+
+// Treats the finger as "pointing at" a code when its tip lands within one
+// code-width of the code's center — close enough to be unambiguous without
+// requiring pixel-perfect aim.
+function isPointingAt(fingertip, location) {
+  if (!fingertip) {
+    return false;
+  }
+
+  const { topLeftCorner, topRightCorner } = location;
+  const qrWidth = Math.hypot(topRightCorner.x - topLeftCorner.x, topRightCorner.y - topLeftCorner.y);
+  const center = centerOf(location);
+
+  return Math.hypot(fingertip.x - center.x, fingertip.y - center.y) < qrWidth;
+}
+
+// Speaks `name` only when it's a new target, so holding a finger on the same
+// object doesn't repeat the announcement every frame.
+function announceObject(data, name) {
+  if (data === pointedObjectData) {
+    return;
+  }
+
+  pointedObjectData = data;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(new SpeechSynthesisUtterance(name));
+}
+
+function drawFingertip(point) {
+  overlayCtx.fillStyle = '#ffffff';
+  overlayCtx.beginPath();
+  overlayCtx.arc(point.x, point.y, Math.max(6, overlay.width * 0.01), 0, Math.PI * 2);
+  overlayCtx.fill();
 }
 
 // Approximate size of a QR code in the captured frame, in pixels.
@@ -110,6 +191,10 @@ function tick() {
     sampleCtx.drawImage(video, 0, 0, sampleCanvas.width, sampleCanvas.height);
 
     overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
+
+    const fingertip = getIndexFingertip();
+    let pointedAtSomething = false;
+
     for (const qrCode of scanForQRCodes()) {
       const object = getObject(qrCode.data);
       drawBox(qrCode.location, object.color);
@@ -118,6 +203,19 @@ function tick() {
       } else {
         drawLabel(qrCode.location, object.name, object.color);
       }
+
+      if (isPointingAt(fingertip, qrCode.location)) {
+        pointedAtSomething = true;
+        announceObject(qrCode.data, object.name);
+      }
+    }
+
+    if (!pointedAtSomething) {
+      pointedObjectData = null;
+    }
+
+    if (fingertip) {
+      drawFingertip(fingertip);
     }
   }
 
