@@ -21,9 +21,14 @@ const OBJECTS = {
   'object-a': { name: 'Object A', color: '#66ff66', imageSrc: 'images/object-a.jpg' },
   'object-b': { name: 'Object B', color: '#ff6666', imageSrc: 'images/object-b.webp' },
   'object-c': { name: 'Object C', color: '#a366ff', imageSrc: 'images/object-c.gif' },
-  'bottle-empty': { name: 'Bottle 1', color: '#ff3333' },
-  'bottle-half': { name: 'Bottle 2', color: '#ffaa00' },
-  'bottle-full': { name: 'Bottle 3', color: '#33ff99' },
+  'bottle-empty': { name: 'Taro', color: '#ff3333' },
+  'bottle-half': { name: 'Shrek', color: '#ffaa00' },
+  'bottle-full': { name: 'GusGus', color: '#33ff99' },
+  'cup': { name: 'Ham', color: '#00ffcc' },
+  'keys': { name: 'Sam', color: '#cc00ff' },
+  'wallet': { name: 'Tequila', color: '#ff9900' },
+  'headphones': { name: 'Marshmallow', color: '#3399ff' },
+  'laptop': { name: 'Jerry', color: '#ff33cc' },
 };
 
 // Preload each object's image once at startup so `image.complete` is ready
