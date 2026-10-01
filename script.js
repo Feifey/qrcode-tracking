@@ -60,8 +60,11 @@ function startCamera(facingMode) {
 
   const constraints = {
     video: {
-      width: { ideal: 1920 },
-      height: { ideal: 1080 },
+      // Lower than the camera's max resolution on purpose: scanning cost
+      // scales with frame area (more/bigger tiles to decode), and QR codes
+      // don't need full HD detail to read reliably at normal distances.
+      width: { ideal: 1280 },
+      height: { ideal: 720 },
       facingMode: { ideal: facingMode },
     },
     audio: false,
@@ -129,7 +132,10 @@ function scanForQRCodes() {
   for (const y of ys) {
     for (const x of xs) {
       const tile = sampleCtx.getImageData(x, y, TILE_SIZE, TILE_SIZE);
-      const qrCode = jsQR(tile.data, TILE_SIZE, TILE_SIZE);
+      // Our codes are printed black-on-white, so skip jsQR's color-inverted
+      // decoding pass (its default) — it roughly doubles work per tile for
+      // a case we never hit.
+      const qrCode = jsQR(tile.data, TILE_SIZE, TILE_SIZE, { inversionAttempts: 'dontInvert' });
       if (qrCode) {
         detections.push(offsetQRCode(qrCode, x, y));
       }
