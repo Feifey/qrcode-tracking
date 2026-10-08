@@ -10,42 +10,7 @@ let currentStream;
 let currentFacingMode = 'environment';
 let tickStarted = false;
 
-// Maps each QR code's decoded text to the object it represents. Add or edit
-// entries here to change what a code displays as, without touching the
-// scanning/rendering logic below. imageSrc is optional; without one, the
-// code falls back to a text label in `color`.
-const OBJECTS = {
-  'phone': { name: 'Phone', color: '#00c8ff', imageSrc: 'images/phone.webp' },
-  'bottle': { name: 'Bottle', color: '#ffcc00', imageSrc: 'images/bottle.webp' },
-  'notebook': { name: 'Notebook', color: '#ff6699', imageSrc: 'images/notebook.jpg' },
-  'object-a': { name: 'Object A', color: '#66ff66', imageSrc: 'images/object-a.jpg' },
-  'object-b': { name: 'Object B', color: '#ff6666', imageSrc: 'images/object-b.webp' },
-  'object-c': { name: 'Object C', color: '#a366ff', imageSrc: 'images/object-c.gif' },
-  'bottle-empty': { name: 'Taro', color: '#ff3333' },
-  'bottle-half': { name: 'Shrek', color: '#ffaa00' },
-  'bottle-full': { name: 'GusGus', color: '#33ff99' },
-  'cup': { name: 'Ham', color: '#00ffcc' },
-  'keys': { name: 'Sam', color: '#cc00ff' },
-  'wallet': { name: 'Tequila', color: '#ff9900' },
-  'headphones': { name: 'Marshmallow', color: '#3399ff' },
-  'laptop': { name: 'Jerry', color: '#ff33cc' },
-};
-
-// Preload each object's image once at startup so `image.complete` is ready
-// by the time a code is first detected, rather than loading on first scan.
-for (const object of Object.values(OBJECTS)) {
-  if (object.imageSrc) {
-    const image = new Image();
-    image.src = object.imageSrc;
-    object.image = image;
-  }
-}
-
-// Falls back to the raw decoded text (in the default green) for any QR code
-// that isn't in OBJECTS yet.
-function getObject(data) {
-  return OBJECTS[data] || { name: data, color: '#00ff00' };
-}
+const UNKNOWN_CODE_COLOR = '#00ff00';
 
 // Hand tracking (MediaPipe HandLandmarker) powers the "point at an object to
 // hear its name" feature. It loads its WASM runtime and model from a CDN
@@ -80,7 +45,7 @@ initHandLandmarker().catch((error) => {
 // Landmark 8 is the index fingertip in MediaPipe's 21-point hand model.
 // Coordinates come back normalized (0-1) relative to the video frame.
 function getIndexFingertip() {
-  if (!handLandmarker || video.readyState !== video.HAVE_ENOUGH_DATA) {
+  if (!handLandmarker) {
     return null;
   }
 
@@ -102,11 +67,8 @@ function isPointingAt(fingertip, location) {
     return false;
   }
 
-  const { topLeftCorner, topRightCorner } = location;
-  const qrWidth = Math.hypot(topRightCorner.x - topLeftCorner.x, topRightCorner.y - topLeftCorner.y);
   const center = centerOf(location);
-
-  return Math.hypot(fingertip.x - center.x, fingertip.y - center.y) < qrWidth;
+  return Math.hypot(fingertip.x - center.x, fingertip.y - center.y) < widthOf(location);
 }
 
 // Speaks `name` only when it's a new target, so holding a finger on the same
@@ -192,26 +154,36 @@ cameraToggleButton.addEventListener('click', () => {
 startCamera(currentFacingMode);
 
 function tick() {
-  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+  // Scanning and hand tracking are the expensive parts, so skip them while
+  // another tab (Find a Match, Meet the Mice) is showing.
+  if (currentView === 'scan' && video.readyState === video.HAVE_ENOUGH_DATA) {
     sampleCtx.drawImage(video, 0, 0, sampleCanvas.width, sampleCanvas.height);
 
     overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
 
     const fingertip = getIndexFingertip();
     let pointedAtSomething = false;
+    const scannedIds = [];
 
     for (const qrCode of scanForQRCodes()) {
-      const object = getObject(qrCode.data);
-      drawBox(qrCode.location, object.color);
-      if (object.image && object.image.complete && object.image.naturalWidth > 0) {
-        drawObjectImage(qrCode.location, object.image);
+      const mouse = getMouse(qrCode.data);
+      const color = mouse ? mouse.color : UNKNOWN_CODE_COLOR;
+      drawBox(qrCode.location, color);
+
+      if (mouse) {
+        scannedIds.push(mouse.id);
+        const photo = getMousePhoto(mouse);
+        if (photo && photo.complete && photo.naturalWidth > 0) {
+          drawObjectImage(qrCode.location, photo);
+        }
+        drawLabel(qrCode.location, mouse.name, mouse.tags, color);
       } else {
-        drawLabel(qrCode.location, object.name, object.color);
+        drawLabel(qrCode.location, qrCode.data, [], color);
       }
 
       if (isPointingAt(fingertip, qrCode.location)) {
         pointedAtSomething = true;
-        announceObject(qrCode.data, object.name);
+        announceObject(qrCode.data, mouse ? mouse.name : qrCode.data);
       }
     }
 
@@ -222,6 +194,8 @@ function tick() {
     if (fingertip) {
       drawFingertip(fingertip);
     }
+
+    reportScannedMice(scannedIds);
   }
 
   requestAnimationFrame(tick);
@@ -293,9 +267,7 @@ function dedupeDetections(detections) {
     const center = centerOf(detection.location);
     const isDuplicate = unique.some((existing) => {
       const existingCenter = centerOf(existing.location);
-      const dx = center.x - existingCenter.x;
-      const dy = center.y - existingCenter.y;
-      return Math.sqrt(dx * dx + dy * dy) < QR_SIZE;
+      return Math.hypot(center.x - existingCenter.x, center.y - existingCenter.y) < QR_SIZE;
     });
 
     if (!isDuplicate) {
@@ -314,6 +286,11 @@ function centerOf(location) {
   };
 }
 
+function widthOf(location) {
+  const { topLeftCorner, topRightCorner } = location;
+  return Math.hypot(topRightCorner.x - topLeftCorner.x, topRightCorner.y - topLeftCorner.y);
+}
+
 // How much bigger than the QR code itself the overlaid image is drawn.
 // 1.0 would match the code's footprint exactly; a bit above that keeps the
 // image legible without covering much extra screen space.
@@ -322,17 +299,14 @@ const OBJECT_IMAGE_SCALE = 1.2;
 // Draws `image` centered on the QR code, scaled relative to the code's own
 // size in the frame so it stays proportional as the code moves closer/further.
 function drawObjectImage(location, image) {
-  const { topLeftCorner, topRightCorner } = location;
   const center = centerOf(location);
-  const qrWidth = Math.hypot(topRightCorner.x - topLeftCorner.x, topRightCorner.y - topLeftCorner.y);
-
-  const drawWidth = qrWidth * OBJECT_IMAGE_SCALE;
+  const drawWidth = widthOf(location) * OBJECT_IMAGE_SCALE;
   const drawHeight = drawWidth * (image.naturalHeight / image.naturalWidth);
 
   overlayCtx.drawImage(image, center.x - drawWidth / 2, center.y - drawHeight / 2, drawWidth, drawHeight);
 }
 
-function drawBox(location, color = '#00ff00') {
+function drawBox(location, color) {
   const { topLeftCorner, topRightCorner, bottomRightCorner, bottomLeftCorner } = location;
 
   overlayCtx.strokeStyle = color;
@@ -346,21 +320,59 @@ function drawBox(location, color = '#00ff00') {
   overlayCtx.stroke();
 }
 
-function drawLabel(location, text, color = '#00ff00') {
+// Splits tags into lines no wider than maxWidth, using the current font.
+function wrapTags(tags, maxWidth) {
+  const lines = [];
+  let line = '';
+  for (const tag of tags) {
+    const candidate = line ? `${line} · ${tag}` : tag;
+    if (line && overlayCtx.measureText(candidate).width > maxWidth) {
+      lines.push(line);
+      line = tag;
+    } else {
+      line = candidate;
+    }
+  }
+  if (line) {
+    lines.push(line);
+  }
+  return lines;
+}
+
+// Draws a name (in the code's color) with its tags wrapped underneath, on a
+// dark panel just below the code.
+function drawLabel(location, title, tags, color) {
   const { bottomLeftCorner, bottomRightCorner } = location;
 
-  const fontSize = Math.max(16, overlay.width * 0.02);
-  const padding = fontSize * 0.25;
+  const titleSize = Math.max(16, overlay.width * 0.022);
+  const tagSize = titleSize * 0.72;
+  const lineHeight = tagSize * 1.4;
+  const padding = titleSize * 0.4;
   const x = Math.min(bottomLeftCorner.x, bottomRightCorner.x);
-  const y = Math.max(bottomLeftCorner.y, bottomRightCorner.y) + padding;
+  const y = Math.max(bottomLeftCorner.y, bottomRightCorner.y) + padding * 2;
 
-  overlayCtx.font = `${fontSize}px monospace`;
   overlayCtx.textBaseline = 'top';
-  const textWidth = overlayCtx.measureText(text).width;
+  const tagFont = `600 ${tagSize}px Nunito, sans-serif`;
+  const titleFont = `700 ${titleSize}px Fredoka, Nunito, sans-serif`;
 
-  overlayCtx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-  overlayCtx.fillRect(x - padding, y - padding, textWidth + padding * 2, fontSize + padding * 2);
+  overlayCtx.font = tagFont;
+  const lines = wrapTags(tags, Math.max(widthOf(location) * 1.5, titleSize * 9));
+  let width = Math.max(0, ...lines.map((line) => overlayCtx.measureText(line).width));
+  overlayCtx.font = titleFont;
+  width = Math.max(width, overlayCtx.measureText(title).width);
+  const height = titleSize + lines.length * lineHeight;
+
+  overlayCtx.fillStyle = 'rgba(30, 22, 17, 0.8)';
+  overlayCtx.beginPath();
+  overlayCtx.roundRect(x - padding, y - padding, width + padding * 2, height + padding * 2, padding);
+  overlayCtx.fill();
 
   overlayCtx.fillStyle = color;
-  overlayCtx.fillText(text, x, y);
+  overlayCtx.fillText(title, x, y);
+
+  overlayCtx.font = tagFont;
+  overlayCtx.fillStyle = '#ffffff';
+  lines.forEach((line, index) => {
+    overlayCtx.fillText(line, x, y + titleSize + (lineHeight - tagSize) + index * lineHeight);
+  });
 }

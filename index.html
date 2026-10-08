@@ -3,14 +3,62 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>tracking</title>
+  <title>Mouse Haven</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <video id="webcam" autoplay playsinline muted></video>
-  <canvas id="overlay"></canvas>
-  <button id="cameraToggle" class="camera-toggle">Switch to Front Camera</button>
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">🐭</span>
+      <div>
+        <h1>Mouse Haven</h1>
+        <p class="tagline">Find your most compatible mouse</p>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab is-active" type="button" role="tab" aria-selected="true" data-view="scan">Scan</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-view="match">Find a Match</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-view="mice">Meet the Mice</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="view-scan" class="view is-active">
+      <div class="scanner">
+        <video id="webcam" autoplay playsinline muted></video>
+        <canvas id="overlay"></canvas>
+        <button id="cameraToggle" class="camera-toggle" type="button">Switch to Front Camera</button>
+      </div>
+      <div class="scan-results">
+        <h2>Scanned mice</h2>
+        <p class="hint">Scan a mouse's QR code to see its personality. Point at a code with your index finger to hear its name.</p>
+        <div id="scanCards" class="card-grid"></div>
+      </div>
+    </section>
+
+    <section id="view-match" class="view">
+      <h2>What are you looking for in a mouse?</h2>
+      <p class="hint">Pick the personality traits you'd love in a companion, and we'll find the mice who share them.</p>
+      <div id="tagPicker" class="tag-list tag-picker"></div>
+      <button id="clearTags" class="button secondary" type="button">Clear traits</button>
+      <div id="matchResults" class="card-grid match-results"></div>
+    </section>
+
+    <section id="view-mice" class="view">
+      <h2>Meet the mice</h2>
+      <p class="hint">Open a mouse's profile to add a description, memories, or a photo.</p>
+      <div id="miceGrid" class="card-grid"></div>
+    </section>
+  </main>
+
+  <dialog id="profileDialog" class="profile-dialog"></dialog>
+
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+  <script src="mice.js"></script>
+  <script src="ui.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
