@@ -8,41 +8,49 @@ const DEFAULT_MICE = {
   'laptop': {
     name: 'Jerry',
     color: '#f28fad',
+    photo: 'images/mice/jerry.jpg',
     tags: ['Calm', 'Gentle', 'Independent', 'Cozy', 'Sweet'],
   },
   'headphones': {
     name: 'Marshmallow',
     color: '#8ec5ff',
+    photo: 'images/mice/marshmallow.jpg',
     tags: ['Playful', 'Energetic', 'Social', 'Cozy', 'Curious', 'Bold', 'Charming'],
   },
   'wallet': {
     name: 'Tequila',
     color: '#ffb347',
+    photo: 'images/mice/tequila.jpg',
     tags: ['Energetic', 'Independent', 'Free-spirited', 'Curious', 'Dreamy'],
   },
   'keys': {
     name: 'Sam',
     color: '#b58cff',
+    photo: 'images/mice/ham-and-sam.jpg',
     tags: ['Playful', 'Social', 'Free-spirited', 'Curious', 'Bold'],
   },
   'cup': {
     name: 'Ham',
     color: '#5fd4b8',
+    photo: 'images/mice/ham-and-sam.jpg',
     tags: ['Gentle', 'Social', 'Cozy', 'Sweet', 'Sensitive', 'Charming'],
   },
   'bottle-full': {
     name: 'GusGus',
     color: '#9bd36a',
+    photo: 'images/mice/gusgus.jpg',
     tags: ['Calm', 'Gentle', 'Independent', 'Curious', 'Sweet', 'Dreamy', 'Sensitive'],
   },
   'bottle-half': {
     name: 'Shrek',
     color: '#ffd166',
+    photo: 'images/mice/shrek.jpg',
     tags: ['Playful', 'Energetic', 'Free-spirited', 'Bold'],
   },
   'bottle-empty': {
     name: 'Taro',
     color: '#c9a0dc',
+    photo: 'images/mice/taro.jpg',
     tags: ['Calm', 'Independent', 'Dreamy', 'Sensitive', 'Charming'],
   },
 };
@@ -69,7 +77,7 @@ function loadProfiles() {
       tags: Array.isArray(stored.tags) ? stored.tags : base.tags,
       description: typeof stored.description === 'string' ? stored.description : '',
       memories: Array.isArray(stored.memories) ? stored.memories : [],
-      photo: typeof stored.photo === 'string' ? stored.photo : null,
+      photo: typeof stored.photo === 'string' ? stored.photo : base.photo,
     };
   }
   return mice;
@@ -77,10 +85,16 @@ function loadProfiles() {
 
 const MICE = loadProfiles();
 
+function hasCustomPhoto(mouse) {
+  return mouse.photo !== DEFAULT_MICE[mouse.id].photo;
+}
+
 function saveProfiles() {
   const data = {};
-  for (const [id, { tags, description, memories, photo }] of Object.entries(MICE)) {
-    data[id] = { tags, description, memories, photo };
+  for (const [id, mouse] of Object.entries(MICE)) {
+    const { tags, description, memories, photo } = mouse;
+    // Only uploaded photos are stored; the default comes from the image file.
+    data[id] = { tags, description, memories, photo: hasCustomPhoto(mouse) ? photo : null };
   }
 
   try {

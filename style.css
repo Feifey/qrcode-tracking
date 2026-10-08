@@ -416,6 +416,15 @@ main {
   font-size: 17px;
 }
 
+.photo-preview {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  margin-bottom: 12px;
+  border-radius: 14px;
+  object-fit: cover;
+}
+
 .profile-section .hint {
   margin: 0 0 12px;
 }

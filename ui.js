@@ -222,6 +222,12 @@ function renderSection(title) {
 
 function renderPhotoSection(mouse) {
   const section = renderSection('Photo');
+  if (mouse.photo) {
+    const preview = el('img', 'photo-preview');
+    preview.src = mouse.photo;
+    preview.alt = `Photo of ${mouse.name}`;
+    section.append(preview);
+  }
   const actions = el('div', 'button-row');
 
   const upload = el('button', 'button', mouse.photo ? 'Change photo' : 'Add photo');
@@ -249,14 +255,15 @@ function renderPhotoSection(mouse) {
   });
   actions.append(upload, input);
 
-  if (mouse.photo) {
-    const remove = el('button', 'button secondary', 'Remove photo');
-    remove.type = 'button';
-    remove.addEventListener('click', () => {
-      updateMouse(mouse.id, { photo: null });
+  if (hasCustomPhoto(mouse)) {
+    const defaultPhoto = DEFAULT_MICE[mouse.id].photo;
+    const reset = el('button', 'button secondary', defaultPhoto ? 'Restore original photo' : 'Remove photo');
+    reset.type = 'button';
+    reset.addEventListener('click', () => {
+      updateMouse(mouse.id, { photo: defaultPhoto || null });
       renderProfile();
     });
-    actions.append(remove);
+    actions.append(reset);
   }
 
   section.append(actions);
