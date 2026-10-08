@@ -86,7 +86,7 @@ function announceObject(data, name) {
 function drawFingertip(point) {
   overlayCtx.fillStyle = '#ffffff';
   overlayCtx.beginPath();
-  overlayCtx.arc(point.x, point.y, Math.max(6, overlay.width * 0.01), 0, Math.PI * 2);
+  overlayCtx.arc(point.x, point.y, screenPx(8), 0, Math.PI * 2);
   overlayCtx.fill();
 }
 
@@ -306,11 +306,20 @@ function drawObjectImage(location, image) {
   overlayCtx.drawImage(image, center.x - drawWidth / 2, center.y - drawHeight / 2, drawWidth, drawHeight);
 }
 
+// The overlay is drawn at the camera's resolution but displayed scaled to fit
+// the scanner (object-fit: cover), so this converts an on-screen size in CSS
+// pixels to canvas pixels. That keeps text the same readable size on a phone
+// as on a laptop, regardless of camera resolution.
+function screenPx(px) {
+  const displayScale = Math.max(overlay.clientWidth / overlay.width, overlay.clientHeight / overlay.height);
+  return px / displayScale;
+}
+
 function drawBox(location, color) {
   const { topLeftCorner, topRightCorner, bottomRightCorner, bottomLeftCorner } = location;
 
   overlayCtx.strokeStyle = color;
-  overlayCtx.lineWidth = Math.max(4, overlay.width * 0.006);
+  overlayCtx.lineWidth = screenPx(4);
   overlayCtx.beginPath();
   overlayCtx.moveTo(topLeftCorner.x, topLeftCorner.y);
   overlayCtx.lineTo(topRightCorner.x, topRightCorner.y);
@@ -344,8 +353,8 @@ function wrapTags(tags, maxWidth) {
 function drawLabel(location, title, tags, color) {
   const { bottomLeftCorner, bottomRightCorner } = location;
 
-  const titleSize = Math.max(16, overlay.width * 0.022);
-  const tagSize = titleSize * 0.72;
+  const titleSize = screenPx(26);
+  const tagSize = screenPx(18);
   const lineHeight = tagSize * 1.4;
   const padding = titleSize * 0.4;
   const x = Math.min(bottomLeftCorner.x, bottomRightCorner.x);
