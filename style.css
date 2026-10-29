@@ -154,11 +154,67 @@ main {
   pointer-events: none;
 }
 
-.camera-toggle {
+/* Simulation: a tabletop instead of the camera, and draggable codes. */
+.scanner.is-simulating {
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.07) 1px, transparent 1.5px) 0 0 / 24px 24px,
+    #2b211a;
+}
+
+.scanner.is-simulating #webcam,
+.scanner.is-simulating #cameraToggle {
+  display: none;
+}
+
+.scanner.is-simulating #overlay {
+  pointer-events: auto;
+  touch-action: none;
+  cursor: grab;
+}
+
+.scanner.is-dragging #overlay {
+  cursor: grabbing;
+}
+
+.scan-results .hint a {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.position-events {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 28px;
+  padding: 0;
+  list-style: none;
+}
+
+.position-event {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.position-event-icon {
+  flex: none;
+  width: 1.4em;
+  text-align: center;
+}
+
+.scanner-controls {
   position: absolute;
   top: 12px;
   right: 12px;
   z-index: 1;
+  display: flex;
+  gap: 8px;
+}
+
+.camera-toggle {
   padding: 8px 14px;
   border: 0;
   border-radius: 999px;

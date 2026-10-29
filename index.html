@@ -30,9 +30,15 @@
       <div class="scanner">
         <video id="webcam" autoplay playsinline muted></video>
         <canvas id="overlay"></canvas>
-        <button id="cameraToggle" class="camera-toggle" type="button">Switch to Front Camera</button>
+        <div class="scanner-controls">
+          <button id="simToggle" class="camera-toggle" type="button" aria-pressed="false">Simulate</button>
+          <button id="cameraToggle" class="camera-toggle" type="button">Switch to Front Camera</button>
+        </div>
       </div>
       <div class="scan-results">
+        <h2>Positions</h2>
+        <p class="hint">Mice react to where they're placed. Put two side by side, line up three, or set one in a zone. A cat warns mice near it, and cheese feeds mice next to it. <a href="position.html">How positions work</a></p>
+        <ul id="positionEvents" class="position-events"></ul>
         <h2>Scanned mice</h2>
         <p class="hint">Scan a mouse's QR code to see its personality. Point at a code with your index finger to hear its name.</p>
         <div id="scanCards" class="card-grid"></div>
@@ -59,6 +65,8 @@
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
   <script src="mice.js"></script>
   <script src="ui.js"></script>
+  <script src="position.js"></script>
   <script src="script.js"></script>
+  <script src="simulate.js"></script>
 </body>
 </html>

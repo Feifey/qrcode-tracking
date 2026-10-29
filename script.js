@@ -137,11 +137,15 @@ video.addEventListener('loadedmetadata', () => {
   sampleCanvas.height = video.videoHeight;
   sampleCtx = sampleCanvas.getContext('2d', { willReadFrequently: true });
 
+  startTicking();
+});
+
+function startTicking() {
   if (!tickStarted) {
     tickStarted = true;
     requestAnimationFrame(tick);
   }
-});
+}
 
 cameraToggleButton.addEventListener('click', () => {
   currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
@@ -156,36 +160,53 @@ startCamera(currentFacingMode);
 function tick() {
   // Scanning and hand tracking are the expensive parts, so skip them while
   // another tab (Find a Match, Meet the Mice) is showing.
-  if (currentView === 'scan' && video.readyState === video.HAVE_ENOUGH_DATA) {
-    sampleCtx.drawImage(video, 0, 0, sampleCanvas.width, sampleCanvas.height);
-
+  const cameraReady = video.readyState === video.HAVE_ENOUGH_DATA;
+  if (currentView === 'scan' && (simulating || cameraReady)) {
     overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
 
-    const fingertip = getIndexFingertip();
+    let fingertip = null;
+    let qrCodes;
+    if (simulating) {
+      qrCodes = simulatedQRCodes();
+    } else {
+      sampleCtx.drawImage(video, 0, 0, sampleCanvas.width, sampleCanvas.height);
+      fingertip = getIndexFingertip();
+      qrCodes = scanForQRCodes();
+    }
+
+    const occupants = qrCodes.map(toOccupant);
+    const layout = analyzePositions(occupants);
+    drawPositionBackground(layout);
+
     let pointedAtSomething = false;
     const scannedIds = [];
 
-    for (const qrCode of scanForQRCodes()) {
-      const mouse = getMouse(qrCode.data);
-      const color = mouse ? mouse.color : UNKNOWN_CODE_COLOR;
-      drawBox(qrCode.location, color);
+    for (const { data, location, mouse, prop } of occupants) {
+      const color = mouse ? mouse.color : prop ? prop.color : UNKNOWN_CODE_COLOR;
+      drawBox(location, color);
 
       if (mouse) {
         scannedIds.push(mouse.id);
         const photo = getMousePhoto(mouse);
         if (photo && photo.complete && photo.naturalWidth > 0) {
-          drawObjectImage(qrCode.location, photo);
+          drawObjectImage(location, photo);
         }
-        drawLabel(qrCode.location, mouse.name, mouse.tags, color);
+        // Virtual codes sit close together, so their labels skip the tags.
+        drawLabel(location, mouse.name, simulating ? [] : mouse.tags, color);
+      } else if (prop) {
+        drawEmoji(location, prop.emoji);
+        drawLabel(location, prop.name, simulating ? [] : [prop.blurb], color);
       } else {
-        drawLabel(qrCode.location, qrCode.data, [], color);
+        drawLabel(location, data, [], color);
       }
 
-      if (isPointingAt(fingertip, qrCode.location)) {
+      if (isPointingAt(fingertip, location)) {
         pointedAtSomething = true;
-        announceObject(qrCode.data, mouse ? mouse.name : qrCode.data);
+        announceObject(data, mouse ? mouse.name : prop ? prop.name : data);
       }
     }
+
+    drawPositionForeground(layout);
 
     if (!pointedAtSomething) {
       pointedObjectData = null;
@@ -196,6 +217,7 @@ function tick() {
     }
 
     reportScannedMice(scannedIds);
+    reportPositionEvents(layout);
   }
 
   requestAnimationFrame(tick);

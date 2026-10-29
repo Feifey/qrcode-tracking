@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mouse Haven Positions</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .doc {
+      max-width: 980px;
+    }
+
+    .doc h2 {
+      margin-top: 40px;
+      font-size: 26px;
+    }
+
+    .doc > p,
+    .doc li {
+      max-width: 68ch;
+    }
+
+    .notion {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 24px;
+      align-items: center;
+      margin-top: 20px;
+      padding: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .notion svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      background:
+        radial-gradient(circle, rgba(255, 255, 255, 0.07) 1px, transparent 1.5px) 0 0 / 18px 18px,
+        #2b211a;
+    }
+
+    .notion h3 {
+      font-size: 20px;
+    }
+
+    .notion dl {
+      display: grid;
+      grid-template-columns: max-content 1fr;
+      gap: 6px 14px;
+      margin: 12px 0 0;
+    }
+
+    .notion dt {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .notion dd {
+      margin: 0;
+    }
+
+    .occupants {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .occupants li {
+      padding: 14px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .doc a {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    code {
+      padding: 1px 6px;
+      background: var(--chip);
+      border-radius: 6px;
+      font-size: 0.92em;
+    }
+
+    @media (max-width: 720px) {
+      .notion {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">🐭</span>
+      <div>
+        <h1>Mouse Haven</h1>
+        <p class="tagline">How positions work</p>
+      </div>
+    </div>
+    <nav class="tabs">
+      <a class="tab" href="index.html">Back to the scanner</a>
+    </nav>
+  </header>
+
+  <main class="doc">
+    <h2>Measuring place</h2>
+    <p>Every code the camera reads becomes an occupant with a center point and a width. Distances are measured in code-widths (<strong>w</strong>), not pixels. So a placement reads the same whether the codes are close to the camera or far from it. Zones are drawn as fractions of the visible frame.</p>
+
+    <h3 style="margin-top: 20px;">Occupants</h3>
+    <ul class="occupants">
+      <li><strong>🐭 Mice (8)</strong><br>The adoptable mice. QR text: <code>laptop</code> <code>headphones</code> <code>wallet</code> <code>keys</code> <code>cup</code> <code>bottle-full</code> <code>bottle-half</code> <code>bottle-empty</code></li>
+      <li><strong>🐱 Cat</strong><br>QR text <code>cat</code>. Built-in ability: <em>warn</em>.</li>
+      <li><strong>🧀 Cheese</strong><br>QR text <code>cheese</code>. Built-in ability: <em>feed</em>.</li>
+    </ul>
+
+    <h2>Part 1: Three notions of position</h2>
+
+    <!-- 1. Adjacency -->
+    <section class="notion">
+      <svg viewBox="0 0 420 260" role="img" aria-label="Two mice 1.6 code-widths apart, linked by a dashed line with a distance label">
+        <!-- threshold ring -->
+        <circle cx="130" cy="130" r="120" fill="none" stroke="rgba(255,255,255,0.25)" stroke-dasharray="6 6" />
+        <text x="130" y="28" fill="rgba(255,255,255,0.55)" font-family="Nunito" font-size="12" text-anchor="middle">2w reach</text>
+        <line x1="130" y1="130" x2="226" y2="130" stroke="#fff" stroke-width="3" stroke-dasharray="8 8" />
+        <rect x="100" y="100" width="60" height="60" fill="#f6ece2" stroke="#f28fad" stroke-width="4" />
+        <text x="130" y="138" font-size="26" text-anchor="middle">🐭</text>
+        <rect x="196" y="100" width="60" height="60" fill="#f6ece2" stroke="#9bd36a" stroke-width="4" />
+        <text x="226" y="138" font-size="26" text-anchor="middle">🐭</text>
+        <rect x="153" y="118" width="50" height="24" rx="12" fill="rgba(30,22,17,0.85)" />
+        <text x="178" y="135" fill="#fff" font-family="Nunito" font-weight="700" font-size="13" text-anchor="middle">1.6w</text>
+        <!-- measure -->
+        <line x1="130" y1="190" x2="226" y2="190" stroke="#ffd166" stroke-width="2" />
+        <line x1="130" y1="183" x2="130" y2="197" stroke="#ffd166" stroke-width="2" />
+        <line x1="226" y1="183" x2="226" y2="197" stroke="#ffd166" stroke-width="2" />
+        <text x="178" y="212" fill="#ffd166" font-family="Nunito" font-weight="700" font-size="13" text-anchor="middle">d (center to center)</text>
+        <!-- bonded variant -->
+        <line x1="300" y1="70" x2="380" y2="70" stroke="#ff7eb6" stroke-width="6" stroke-linecap="round" />
+        <rect x="282" y="52" width="36" height="36" fill="#f6ece2" stroke="#ffd166" stroke-width="3" />
+        <rect x="362" y="52" width="36" height="36" fill="#f6ece2" stroke="#c9a0dc" stroke-width="3" />
+        <rect x="318" y="58" width="44" height="24" rx="12" fill="#ff7eb6" />
+        <text x="340" y="75" fill="#fff" font-family="Nunito" font-weight="700" font-size="13" text-anchor="middle">♥ 1.4w</text>
+        <text x="340" y="112" fill="#ff7eb6" font-family="Nunito" font-weight="700" font-size="12" text-anchor="middle">bonded: ≥ 3 shared tags</text>
+      </svg>
+      <div>
+        <h3>1. Adjacency: “next to”</h3>
+        <dl>
+          <dt>Condition</dt><dd>Two mice whose centers are less than <strong>2w</strong> apart. That leaves less than one code-width of empty space between them.</dd>
+          <dt>Metric</dt><dd>d ÷ average code width</dd>
+          <dt>Indicator</dt><dd>A dashed white line between the two centers, with a pill showing the distance (e.g. <code>1.6w</code>).</dd>
+          <dt>Behavior (2a)</dt><dd><strong>Bonded pair.</strong> If the two mice share 3 or more personality tags, the line turns pink with a ♥. The panel suggests adopting them together.</dd>
+        </dl>
+      </div>
+    </section>
+
+    <!-- 2. Alignment -->
+    <section class="notion">
+      <svg viewBox="0 0 420 260" role="img" aria-label="Three mice on one line, joined by a thick yellow bar and numbered from the end nearest the adoption desk">
+        <!-- tolerance band -->
+        <polygon points="40,212 330,52 346,80 56,240" fill="rgba(255,209,102,0.10)" stroke="rgba(255,209,102,0.45)" stroke-dasharray="5 5" />
+        <line x1="60" y1="215" x2="330" y2="68" stroke="#ffd166" stroke-opacity="0.55" stroke-width="26" stroke-linecap="round" />
+        <rect x="70" y="174" width="44" height="44" fill="#f6ece2" stroke="#ffb347" stroke-width="4" />
+        <rect x="170" y="122" width="44" height="44" fill="#f6ece2" stroke="#ffd166" stroke-width="4" />
+        <rect x="270" y="74" width="44" height="44" fill="#f6ece2" stroke="#b58cff" stroke-width="4" />
+        <text x="92" y="205" font-size="20" text-anchor="middle">🐭</text>
+        <text x="192" y="153" font-size="20" text-anchor="middle">🐭</text>
+        <text x="292" y="105" font-size="20" text-anchor="middle">🐭</text>
+        <g font-family="Fredoka, Nunito" font-weight="700" font-size="14" text-anchor="middle" fill="#3b2a20">
+          <circle cx="70" cy="174" r="12" fill="#ffd166" /><text x="70" y="179">3</text>
+          <circle cx="170" cy="122" r="12" fill="#ffd166" /><text x="170" y="127">2</text>
+          <circle cx="270" cy="74" r="12" fill="#ffd166" /><text x="270" y="79">1</text>
+        </g>
+        <rect x="336" y="18" width="70" height="50" rx="10" fill="rgba(95,212,184,0.2)" stroke="#5fd4b8" stroke-dasharray="6 5" />
+        <text x="371" y="47" fill="#5fd4b8" font-family="Nunito" font-weight="700" font-size="12" text-anchor="middle">Desk</text>
+        <text x="200" y="246" fill="rgba(255,255,255,0.6)" font-family="Nunito" font-size="12" text-anchor="middle">band: ±0.45w off the line · gaps ≤ 3w</text>
+      </svg>
+      <div>
+        <h3>2. Alignment: “in a row”</h3>
+        <dl>
+          <dt>Condition</dt><dd>Three or more mice whose centers lie within <strong>0.45w</strong> of a single straight line, at any angle. No gap along the line can be bigger than <strong>3w</strong>.</dd>
+          <dt>Metric</dt><dd>Perpendicular distance from the line, and spacing along it</dd>
+          <dt>Indicator</dt><dd>A thick yellow bar through the row and a numbered badge on each mouse.</dd>
+          <dt>Behavior (2a)</dt><dd><strong>Adoption line.</strong> The row becomes a queue, numbered from the end closest to the Adoption desk. The panel names who is first in line.</dd>
+        </dl>
+      </div>
+    </section>
+
+    <!-- 3. Zone -->
+    <section class="notion">
+      <svg viewBox="0 0 420 260" role="img" aria-label="Frame with a Nest zone and an Adoption desk zone; a mouse inside each">
+        <rect x="14" y="14" width="392" height="232" rx="10" fill="none" stroke="rgba(255,255,255,0.3)" />
+        <text x="26" y="34" fill="rgba(255,255,255,0.55)" font-family="Nunito" font-size="12">visible frame</text>
+        <rect x="26" y="150" width="134" height="84" rx="10" fill="rgba(142,197,255,0.28)" stroke="#8ec5ff" stroke-width="3" />
+        <text x="36" y="168" fill="#8ec5ff" font-family="Fredoka, Nunito" font-weight="700" font-size="13">Nest · 1 inside</text>
+        <rect x="260" y="150" width="134" height="84" rx="10" fill="rgba(95,212,184,0.28)" stroke="#5fd4b8" stroke-width="3" />
+        <text x="270" y="168" fill="#5fd4b8" font-family="Fredoka, Nunito" font-weight="700" font-size="13">Adoption desk · 1 inside</text>
+        <rect x="76" y="182" width="36" height="36" fill="#f6ece2" stroke="#5fd4b8" stroke-width="3" />
+        <text x="94" y="207" font-size="18" text-anchor="middle">🐭</text>
+        <text x="122" y="190" font-size="16">💤</text>
+        <rect x="309" y="186" width="36" height="36" fill="#f6ece2" stroke="#c9a0dc" stroke-width="3" />
+        <text x="327" y="211" font-size="18" text-anchor="middle">🐭</text>
+        <circle cx="327" cy="204" r="28" fill="none" stroke="rgba(95,212,184,0.3)" stroke-width="5" />
+        <path d="M327 176 A28 28 0 1 1 300 211" fill="none" stroke="#5fd4b8" stroke-width="5" stroke-linecap="round" />
+        <circle cx="210" cy="90" r="4" fill="#ffd166" />
+        <rect x="192" y="72" width="36" height="36" fill="none" stroke="#ffd166" stroke-width="2" stroke-dasharray="4 4" />
+        <text x="210" y="130" fill="#ffd166" font-family="Nunito" font-size="12" text-anchor="middle">center point decides</text>
+        <text x="327" y="140" fill="#5fd4b8" font-family="Nunito" font-weight="700" font-size="12" text-anchor="middle">2s dwell → ready</text>
+      </svg>
+      <div>
+        <h3>3. Zone: “inside”</h3>
+        <dl>
+          <dt>Condition</dt><dd>A mouse’s center point falls inside a named region of the frame: <strong>Nest</strong> (bottom left) or <strong>Adoption desk</strong> (bottom right).</dd>
+          <dt>Metric</dt><dd>Point-in-rectangle, with zones set as fractions of the visible frame</dd>
+          <dt>Indicator</dt><dd>Zones are always drawn as dashed outlines. When a mouse is inside, the zone fills in, turns solid and shows a count (<code>· 1 inside</code>).</dd>
+          <dt>Behavior (2a)</dt><dd>In the <strong>Nest</strong>, a mouse shows <em>💤 Napping</em>. At the <strong>Adoption desk</strong>, a ring fills over 2 seconds and the mouse becomes <em>✓ Ready to adopt</em>. Leaving the desk resets the timer.</dd>
+        </dl>
+      </div>
+    </section>
+
+    <h2>Part 2b: Occupants with abilities</h2>
+
+    <section class="notion">
+      <svg viewBox="0 0 420 260" role="img" aria-label="A cat warning a nearby mouse, and cheese feeding an adjacent mouse">
+        <circle cx="110" cy="130" r="96" fill="rgba(255,90,90,0.08)" stroke="rgba(255,90,90,0.5)" stroke-dasharray="6 6" />
+        <text x="110" y="24" fill="rgba(255,90,90,0.8)" font-family="Nunito" font-size="12" text-anchor="middle">3w warn reach</text>
+        <line x1="110" y1="130" x2="170" y2="180" stroke="#ff5a5a" stroke-width="3" stroke-dasharray="4 6" />
+        <rect x="88" y="108" width="44" height="44" fill="#f6ece2" stroke="#ff5a5a" stroke-width="4" />
+        <text x="110" y="140" font-size="24" text-anchor="middle">🐱</text>
+        <circle cx="170" cy="180" r="30" fill="none" stroke="#ff5a5a" stroke-width="6" />
+        <rect x="155" y="165" width="30" height="30" fill="#f6ece2" stroke="#ffd166" stroke-width="3" />
+        <text x="170" y="187" font-size="16" text-anchor="middle">🐭</text>
+        <rect x="128" y="130" width="84" height="22" rx="11" fill="#ff5a5a" />
+        <text x="170" y="146" fill="#fff" font-family="Nunito" font-weight="700" font-size="12" text-anchor="middle">⚠ Watch out!</text>
+
+        <circle cx="310" cy="160" r="64" fill="rgba(255,216,74,0.08)" stroke="rgba(255,216,74,0.5)" stroke-dasharray="6 6" />
+        <text x="310" y="88" fill="rgba(255,216,74,0.85)" font-family="Nunito" font-size="12" text-anchor="middle">2w feed reach</text>
+        <rect x="288" y="138" width="44" height="44" fill="#f6ece2" stroke="#ffd84a" stroke-width="4" />
+        <text x="310" y="170" font-size="24" text-anchor="middle">🧀</text>
+        <rect x="350" y="178" width="34" height="34" fill="#f6ece2" stroke="#8ec5ff" stroke-width="3" />
+        <text x="367" y="202" font-size="16" text-anchor="middle">🐭</text>
+        <rect x="350" y="160" width="34" height="7" rx="3.5" fill="rgba(30,22,17,0.9)" />
+        <rect x="350" y="160" width="24" height="7" rx="3.5" fill="#ffd84a" />
+      </svg>
+      <div>
+        <h3>Cat (warn) and Cheese (feed)</h3>
+        <dl>
+          <dt>Cat</dt><dd>Any mouse within <strong>3w</strong> of the cat gets a red dashed line from the cat, a pulsing red ring and a <em>⚠ Watch out!</em> pill. The site says <em>“Watch out, Jerry!”</em> aloud once each time a mouse comes into range.</dd>
+          <dt>Cheese</dt><dd>Any mouse within <strong>2w</strong> of the cheese is fed. A yellow bar fills over 4 seconds until the mouse shows <em>🧀 Full!</em>. Away from cheese, a mouse slowly gets hungry again (about 30 seconds).</dd>
+        </dl>
+      </div>
+    </section>
+
+    <h2>Try it</h2>
+    <p>On the <a href="index.html">scanner</a>, press <strong>Simulate</strong> to drag virtual codes around a tabletop with no camera needed. Or print QR codes with the texts above and place them under the camera. Everything that triggers is listed in the <strong>Positions</strong> panel beside the scanner.</p>
+  </main>
+</body>
+</html>
