@@ -33,6 +33,12 @@ function el(tag, className, text) {
   return node;
 }
 
+const viewListeners = [];
+
+function onViewChange(listener) {
+  viewListeners.push(listener);
+}
+
 function showView(name) {
   currentView = name;
   tabs.forEach((tab) => {
@@ -44,6 +50,7 @@ function showView(name) {
   if (name === 'scan') {
     renderedScanKey = null;
   }
+  viewListeners.forEach((listener) => listener(name));
 }
 
 tabs.forEach((tab) => tab.addEventListener('click', () => showView(tab.dataset.view)));

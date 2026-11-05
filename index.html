@@ -22,6 +22,8 @@
       <button class="tab is-active" type="button" role="tab" aria-selected="true" data-view="scan">Scan</button>
       <button class="tab" type="button" role="tab" aria-selected="false" data-view="match">Find a Match</button>
       <button class="tab" type="button" role="tab" aria-selected="false" data-view="mice">Meet the Mice</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-view="house">House</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-view="workshop">Workshop</button>
     </nav>
   </header>
 
@@ -58,6 +60,40 @@
       <p class="hint">Open a mouse's profile to add a description, memories, or a photo.</p>
       <div id="miceGrid" class="card-grid"></div>
     </section>
+
+    <section id="view-house" class="view map-view">
+      <div class="map-stage">
+        <canvas class="map-canvas" aria-label="Floor plan"></canvas>
+      </div>
+      <div class="map-panel">
+        <h2>House</h2>
+        <p class="hint">The Spatial Pixel Test game. Put the MS-01, MS-02 and HM-01 cards on the printed map. Each one reacts to the room it&rsquo;s in. A mouse that meets the human is caught, and two mice together are happy. Tap anywhere to turn on sound.</p>
+        <div class="map-camera">
+          <div class="map-preview"></div>
+          <button class="map-mode button secondary" type="button" aria-pressed="false">Simulate</button>
+        </div>
+        <p class="map-status"></p>
+        <ul class="position-events map-events"></ul>
+        <p class="hint">Print at 100%: <a href="print/map.pdf">floor-plan map</a> · <a href="print/cards.pdf">MS-01, MS-02, HM-01 cards</a></p>
+      </div>
+    </section>
+
+    <section id="view-workshop" class="view map-view">
+      <div class="map-stage">
+        <canvas class="map-canvas" aria-label="Floor plan"></canvas>
+      </div>
+      <div class="map-panel">
+        <h2>Position workshop</h2>
+        <p class="hint">Four notions of position on the floor plan: <strong>inside</strong> a room, <strong>next to</strong>, <strong>in a row</strong> and in a <strong>group</strong> of three or more. Resource cards deliver to the matching need card next to them, and the human warns mice that come near.</p>
+        <div class="map-camera">
+          <div class="map-preview"></div>
+          <button class="map-mode button secondary" type="button" aria-pressed="false">Simulate</button>
+        </div>
+        <p class="map-status"></p>
+        <ul class="position-events map-events"></ul>
+        <p class="hint">Print at 100%: <a href="print/map.pdf">floor-plan map</a> · <a href="print/cards.pdf">MS-01, MS-02, HM-01 cards</a></p>
+      </div>
+    </section>
   </main>
 
   <dialog id="profileDialog" class="profile-dialog"></dialog>
@@ -68,5 +104,8 @@
   <script src="position.js"></script>
   <script src="script.js"></script>
   <script src="simulate.js"></script>
+  <script src="floorplan.js"></script>
+  <script src="house.js"></script>
+  <script src="workshop.js"></script>
 </body>
 </html>

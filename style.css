@@ -585,3 +585,81 @@ textarea {
     font-size: 32px;
   }
 }
+
+/* Floor-plan tabs (House, Workshop) */
+#view-house.is-active,
+#view-workshop.is-active {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.map-stage {
+  display: flex;
+  justify-content: center;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.map-canvas {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: min(78vh, 760px);
+  aspect-ratio: 1326 / 1720;
+  touch-action: none;
+}
+
+.map-view.is-simulating .map-canvas {
+  cursor: grab;
+}
+
+.map-view.is-dragging .map-canvas {
+  cursor: grabbing;
+}
+
+.map-camera {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.map-preview {
+  width: 160px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #1e1611;
+}
+
+.map-preview video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.map-view.is-simulating .map-preview {
+  display: none;
+}
+
+.map-status {
+  margin: 12px 0;
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  #view-house.is-active,
+  #view-workshop.is-active {
+    grid-template-columns: 1fr;
+  }
+
+  .map-canvas {
+    width: 100%;
+    height: auto;
+  }
+}

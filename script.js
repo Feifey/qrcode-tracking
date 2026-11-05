@@ -159,9 +159,17 @@ startCamera(currentFacingMode);
 
 function tick() {
   // Scanning and hand tracking are the expensive parts, so skip them while
-  // another tab (Find a Match, Meet the Mice) is showing.
+  // a tab without a camera (Find a Match, Meet the Mice) is showing. The
+  // floor-plan tabs (House, Workshop) scan too, but draw onto their own map.
   const cameraReady = video.readyState === video.HAVE_ENOUGH_DATA;
-  if (currentView === 'scan' && (simulating || cameraReady)) {
+  const board = boards[currentView];
+  if (board) {
+    if (!board.simulating && cameraReady) {
+      sampleCtx.drawImage(video, 0, 0, sampleCanvas.width, sampleCanvas.height);
+      updateMapFromCamera(scanForQRCodes());
+    }
+    board.frame();
+  } else if (currentView === 'scan' && (simulating || cameraReady)) {
     overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
 
     let fingertip = null;
@@ -281,7 +289,9 @@ function offsetQRCode(qrCode, offsetX, offsetY) {
 }
 
 // The same QR code is often found in more than one overlapping tile, so
-// collapse detections whose bounding boxes are centered near each other.
+// collapse detections of the same text whose centers are near each other.
+// Different codes are never merged, however close: cards placed side by side
+// are exactly what the position features look for.
 function dedupeDetections(detections) {
   const unique = [];
 
@@ -289,7 +299,8 @@ function dedupeDetections(detections) {
     const center = centerOf(detection.location);
     const isDuplicate = unique.some((existing) => {
       const existingCenter = centerOf(existing.location);
-      return Math.hypot(center.x - existingCenter.x, center.y - existingCenter.y) < QR_SIZE;
+      return existing.data === detection.data
+        && Math.hypot(center.x - existingCenter.x, center.y - existingCenter.y) < QR_SIZE;
     });
 
     if (!isDuplicate) {

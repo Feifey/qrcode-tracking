@@ -110,8 +110,9 @@ function findPairs(mice) {
 
 // Tries the line through every pair of mice, collects the mice lying on it,
 // and splits them wherever the gap along the line is too big to read as one
-// row. Rows contained in a longer row are dropped.
-function findRows(mice) {
+// row. Rows contained in a longer row are dropped. Also used by the Workshop
+// tab, so it only needs `data`, `center` and `width` on each occupant.
+function findRows(mice, { maxGapWidths = ROW_MAX_GAP_WIDTHS } = {}) {
   const rows = new Map();
 
   for (let i = 0; i < mice.length; i++) {
@@ -141,7 +142,7 @@ function findRows(mice) {
       };
       for (const entry of onLine) {
         const previous = run[run.length - 1];
-        if (previous && (entry.along - previous.along) / entry.occupant.width > ROW_MAX_GAP_WIDTHS) {
+        if (previous && (entry.along - previous.along) / entry.occupant.width > maxGapWidths) {
           flush();
           run = [];
         }
@@ -152,9 +153,7 @@ function findRows(mice) {
   }
 
   const all = [...rows.values()];
-  return all
-    .filter((row) => !all.some((other) => other.length > row.length && row.every((m) => other.includes(m))))
-    .map(orderRowTowardDesk);
+  return all.filter((row) => !all.some((other) => other.length > row.length && row.every((m) => other.includes(m))));
 }
 
 // An adoption line is read from the end nearest the adoption desk, so the
@@ -225,7 +224,7 @@ function analyzePositions(occupants) {
     props,
     zoneById,
     pairs: findPairs(mice),
-    rows: findRows(mice),
+    rows: findRows(mice).map(orderRowTowardDesk),
     warnings,
     feedings,
     warnedIds: warnedNow,
